@@ -43,3 +43,12 @@ shape = SubResource("RectangleShape2D_vli1u")
 position = Vector2(960, 0)
 shape = SubResource("RectangleShape2D_t7j1b")
 debug_color = Color(0.992157, 0, 0.0745098, 0.419608)
+
+[connection signal="mouse_entered" from="UpCameraPush" to="." method="_push_up"]
+[connection signal="mouse_exited" from="UpCameraPush" to="." method="_stop_push_up"]
+[connection signal="mouse_entered" from="DownCameraPush" to="." method="_push_down"]
+[connection signal="mouse_exited" from="DownCameraPush" to="." method="_stop_push_down"]
+[connection signal="mouse_entered" from="LeftCameraPush" to="." method="_push_left"]
+[connection signal="mouse_exited" from="LeftCameraPush" to="." method="_stop_push_left"]
+[connection signal="mouse_entered" from="RightCameraPush" to="." method="_push_right"]
+[connection signal="mouse_exited" from="RightCameraPush" to="." method="_stop_push_right"]
