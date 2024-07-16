@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3 uid="uid://c5dppwj56yf3t"]
+
+[ext_resource type="Script" path="res://Cameras/map_camera.gd" id="1_o7ete"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dk5cl"]
+size = Vector2(1920, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i6qw4"]
+size = Vector2(1920, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vli1u"]
+size = Vector2(50, 1080)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_t7j1b"]
+size = Vector2(50, 1080)
+
+[node name="MapCamera" type="Camera2D"]
+script = ExtResource("1_o7ete")
+
+[node name="UpCameraPush" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="UpCameraPush"]
+position = Vector2(0, -540)
+shape = SubResource("RectangleShape2D_dk5cl")
+debug_color = Color(0.678431, 0.337255, 0.937255, 0.419608)
+
+[node name="DownCameraPush" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DownCameraPush"]
+position = Vector2(0, 540)
+shape = SubResource("RectangleShape2D_i6qw4")
+debug_color = Color(0.627451, 0.858824, 0.270588, 0.419608)
+
+[node name="LeftCameraPush" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftCameraPush"]
+position = Vector2(-960, 0)
+shape = SubResource("RectangleShape2D_vli1u")
+
+[node name="RightCameraPush" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightCameraPush"]
+position = Vector2(960, 0)
+shape = SubResource("RectangleShape2D_t7j1b")
+debug_color = Color(0.992157, 0, 0.0745098, 0.419608)
