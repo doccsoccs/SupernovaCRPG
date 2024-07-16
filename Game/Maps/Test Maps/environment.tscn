@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://ds33s2n2m77jy"]
 
 [ext_resource type="Texture2D" uid="uid://b4i2t8fbpujqw" path="res://Maps/Placeholders/testmap1_sprite.png" id="1_c7t32"]
-[ext_resource type="PackedScene" uid="uid://4c2lm3b10nkk" path="res://Prefabs/PlayerCharacters/player.tscn" id="2_4oodn"]
 [ext_resource type="PackedScene" uid="uid://c5dppwj56yf3t" path="res://Cameras/map_camera.tscn" id="3_ujmm8"]
+[ext_resource type="PackedScene" uid="uid://b1l070yg8ba2j" path="res://Prefabs/PlayerCharacters/party_controller.tscn" id="3_x8nns"]
 
 [node name="TestMap1" type="Node2D"]
 
@@ -11,8 +11,8 @@ scale = Vector2(5, 5)
 texture = ExtResource("1_c7t32")
 centered = false
 
-[node name="Player" parent="." instance=ExtResource("2_4oodn")]
-position = Vector2(326, 326)
-
 [node name="MapCamera" parent="." instance=ExtResource("3_ujmm8")]
 position = Vector2(1080, 639)
+
+[node name="PartyController" parent="." instance=ExtResource("3_x8nns")]
+z_index = 1

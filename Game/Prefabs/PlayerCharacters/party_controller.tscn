@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://b1l070yg8ba2j"]
+
+[ext_resource type="Script" path="res://Prefabs/PlayerCharacters/party_controller.gd" id="1_cy3r4"]
+[ext_resource type="PackedScene" uid="uid://4c2lm3b10nkk" path="res://Prefabs/PlayerCharacters/player.tscn" id="1_eexi7"]
+[ext_resource type="PackedScene" uid="uid://isngwtgme5rj" path="res://Prefabs/Icons/MoveFlag.tscn" id="2_83218"]
+
+[node name="PartyController" type="Node2D"]
+script = ExtResource("1_cy3r4")
+
+[node name="MoveFlag" parent="." instance=ExtResource("2_83218")]
+visible = false
+
+[node name="Player" parent="." instance=ExtResource("1_eexi7")]
+position = Vector2(326, 326)
