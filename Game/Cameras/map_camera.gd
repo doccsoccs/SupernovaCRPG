@@ -22,10 +22,9 @@ var ybound : float
 @export var bounds_buffer : float = 500.0
 
 func _ready():
-	Input.mouse_mode = Input.MOUSE_MODE_CONFINED # prevents mouse from leaving screen
+	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED) # prevents mouse from leaving screen
 
 func _physics_process(delta):
-	
 	## CAMERA CONTROLS
 	# Zooming
 	if Input.is_action_just_released("CameraZoomIn"):
