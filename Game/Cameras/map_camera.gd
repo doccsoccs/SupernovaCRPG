@@ -8,6 +8,7 @@ extends Camera2D
 
 # CAMERA MOVE VARIABLES
 @export var move_speed : float = 1000.0
+@export var drag_speed : float = 1000.0
 var velocity : Vector2 = Vector2.ZERO
 var direction : Vector2 = Vector2.ZERO
 var push_up : bool = false
@@ -15,14 +16,15 @@ var push_down : bool = false
 var push_left : bool = false
 var push_right : bool = false
 var using_keyboard : bool = false
+var dragging : bool = false
+var current_mouse_pos : Vector2 = Vector2.ZERO
+var prev_mouse_pos : Vector2 = Vector2.ZERO
+var drag_mult : float
 
 # CAMERA BOUNDS VARIABLES
 var xbound : float
 var ybound : float
 @export var bounds_buffer : float = 500.0
-
-func _ready():
-	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED) # prevents mouse from leaving screen
 
 func _physics_process(delta):
 	## CAMERA CONTROLS
@@ -32,39 +34,51 @@ func _physics_process(delta):
 			zoom = zoom.lerp(zoom + (zoom_speed * zoom), zoom_mult)
 		else:
 			zoom = zoom.lerp(zoom_max, zoom_mult)
-	
 	if Input.is_action_just_released("CameraZoomOut"):
 		if zoom - zoom_speed > zoom_min:
 			zoom = zoom.lerp(zoom - (zoom_speed * zoom), zoom_mult)
 		else:
 			zoom = zoom.lerp(zoom_min, zoom_mult)
 	
+	# Dragging Camera
+	if Input.is_action_just_pressed("CameraDrag"):
+		dragging = true
+		prev_mouse_pos = get_local_mouse_position()
+	elif Input.is_action_just_released("CameraDrag"):
+		dragging = false
+	if dragging:
+		current_mouse_pos = get_local_mouse_position()
+		direction = (prev_mouse_pos - current_mouse_pos).normalized()
+		drag_mult = prev_mouse_pos.distance_to(current_mouse_pos) / 10
+		prev_mouse_pos = current_mouse_pos
+	
 	# Keyboard Screen Movement Input
-	if Input.is_action_pressed("CameraUp"):
+	if Input.is_action_pressed("CameraUp") and !dragging:
 		direction += Vector2(0,-1)
 		using_keyboard = true
-	if Input.is_action_pressed("CameraDown"):
+	if Input.is_action_pressed("CameraDown") and !dragging:
 		direction += Vector2(0,1)
 		using_keyboard = true
-	if Input.is_action_pressed("CameraLeft"):
+	if Input.is_action_pressed("CameraLeft") and !dragging:
 		direction += Vector2(-1,0)
 		using_keyboard = true
-	if Input.is_action_pressed("CameraRight"):
+	if Input.is_action_pressed("CameraRight") and !dragging:
 		direction += Vector2(1,0)
 		using_keyboard = true
 	
 	# Screen Push
-	if push_up and !using_keyboard:
+	if push_up and !using_keyboard and !dragging:
 		direction += Vector2(0,-1)
-	if push_down and !using_keyboard:
+	if push_down and !using_keyboard and !dragging:
 		direction += Vector2(0,1)
-	if push_left and !using_keyboard:
+	if push_left and !using_keyboard and !dragging:
 		direction += Vector2(-1,0)
-	if push_right and !using_keyboard:
+	if push_right and !using_keyboard and !dragging:
 		direction += Vector2(1,0)
 	
 	# Movement
 	velocity += direction * move_speed * delta * (1 / zoom.x)
+	velocity += direction * drag_speed * delta * drag_mult * (0.5 / zoom.x)
 	position += velocity
 	
 	# Reset Vectors
