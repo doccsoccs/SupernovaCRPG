@@ -3,16 +3,16 @@
 [ext_resource type="Script" path="res://Cameras/map_camera.gd" id="1_o7ete"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dk5cl"]
-size = Vector2(1920, 50)
+size = Vector2(1970, 55)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_i6qw4"]
-size = Vector2(1920, 50)
+size = Vector2(1970, 55)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vli1u"]
-size = Vector2(50, 1080)
+size = Vector2(55, 1130)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_t7j1b"]
-size = Vector2(50, 1080)
+size = Vector2(55, 1130)
 
 [node name="MapCamera" type="Camera2D"]
 script = ExtResource("1_o7ete")

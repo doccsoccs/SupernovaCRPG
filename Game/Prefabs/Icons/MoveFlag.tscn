@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://crts6xivjrutq" path="res://Sprites/Placeholders/circle.png" id="1_e1yme"]
 
 [node name="MoveFlag" type="Node2D"]
+visible = false
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(0.705882, 0.960784, 0.596078, 1)

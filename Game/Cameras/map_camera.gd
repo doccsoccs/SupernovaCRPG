@@ -48,8 +48,8 @@ func _physics_process(delta):
 		dragging = false
 	if dragging:
 		current_mouse_pos = get_local_mouse_position()
-		direction = (prev_mouse_pos - current_mouse_pos).normalized()
-		drag_mult = prev_mouse_pos.distance_to(current_mouse_pos) / 10
+		var drag_vector = prev_mouse_pos - current_mouse_pos
+		position += drag_vector*2
 		prev_mouse_pos = current_mouse_pos
 	
 	# Keyboard Screen Movement Input
@@ -78,7 +78,6 @@ func _physics_process(delta):
 	
 	# Movement
 	velocity += direction * move_speed * delta * (1 / zoom.x)
-	velocity += direction * drag_speed * delta * drag_mult * (0.5 / zoom.x)
 	position += velocity
 	
 	# Reset Vectors

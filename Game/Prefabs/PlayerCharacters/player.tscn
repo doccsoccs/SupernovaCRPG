@@ -1,20 +1,113 @@
-[gd_scene load_steps=4 format=3 uid="uid://4c2lm3b10nkk"]
+[gd_scene load_steps=11 format=3 uid="uid://4c2lm3b10nkk"]
 
 [ext_resource type="Texture2D" uid="uid://58v6bixht213" path="res://Sprites/Placeholders/square.png" id="1_2llpe"]
 [ext_resource type="Script" path="res://Prefabs/PlayerCharacters/player.gd" id="1_4woq1"]
+[ext_resource type="PackedScene" uid="uid://isngwtgme5rj" path="res://Prefabs/Icons/MoveFlag.tscn" id="2_cy3g6"]
+[ext_resource type="Texture2D" uid="uid://cn167ags52cqp" path="res://Sprites/Placeholders/opencircle.png" id="3_prmun"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_f5y62"]
-radius = 38.71
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ekir"]
+radius = 52.0
+height = 132.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_canrr"]
+radius = 52.0
+height = 132.0
+
+[sub_resource type="Animation" id="Animation_2xfi2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CharacterSprite:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.501961, 1, 0.0823529, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_xc2t6"]
+resource_name = "base"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CharacterSprite:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_qkxg6"]
+resource_name = "selected"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CharacterSprite:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.501961, 1, 0.0823529, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_m0035"]
+_data = {
+"RESET": SubResource("Animation_2xfi2"),
+"base": SubResource("Animation_xc2t6"),
+"selected": SubResource("Animation_qkxg6")
+}
 
 [node name="Player" type="CharacterBody2D"]
 process_mode = 1
+z_index = 1
+collision_layer = 2
+collision_mask = 3
+motion_mode = 1
 slide_on_ceiling = false
 floor_stop_on_slope = false
 floor_block_on_wall = false
 script = ExtResource("1_4woq1")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="MoveFlag" parent="." instance=ExtResource("2_cy3g6")]
+
+[node name="SelectCircle" type="Sprite2D" parent="."]
+scale = Vector2(1, 0.8)
+texture = ExtResource("3_prmun")
+
+[node name="CharacterSprite" type="Sprite2D" parent="."]
+modulate = Color(0.501961, 1, 0.0823529, 1)
+position = Vector2(0, -45)
+scale = Vector2(0.5625, 1)
 texture = ExtResource("1_2llpe")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_f5y62")
+[node name="SelectArea" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SelectArea"]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_2ekir")
+debug_color = Color(0.423529, 0.894118, 1, 0.419608)
+
+[node name="HitBox" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_canrr")
+debug_color = Color(0.380392, 0.517647, 0.862745, 0.419608)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_m0035")
+}
+
+[connection signal="mouse_entered" from="SelectArea" to="." method="_on_hover"]
+[connection signal="mouse_exited" from="SelectArea" to="." method="_on_stop_hover"]
