@@ -22,7 +22,7 @@ func _process(_delta):
 	else:
 		anim_player.play("base")
 
-func _physics_process(delta):
+func _physics_process(_delta):
 	move_and_slide()
 
 func move_to(target_pos : Vector2, delta):	
