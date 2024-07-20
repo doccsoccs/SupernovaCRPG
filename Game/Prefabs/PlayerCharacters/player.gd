@@ -3,20 +3,24 @@ class_name Character
 
 @export var move_speed : float = 1000.0
 var direction : Vector2 = Vector2.ZERO
-var min_dist : float = 8.2
+var min_dist : float = 8.5
+var arrived_at_flag
 
 var selected : bool = false
 var hovering : bool = false
 
 @onready var move_flag = $MoveFlag
 @onready var anim_player = $AnimationPlayer
+@onready var party_controller = $"../.."
 
 func _process(_delta):
 	# LMB to select a PC
-	if hovering and Input.is_action_just_pressed("Select"):
+	# Adds the selected PC to the list of selected PCs in the party controller
+	if hovering and Input.is_action_just_pressed("Select") and !selected: # only be able to select if not already selected
 		selected = true
+		party_controller.selected_pcs.append(self)
 	
-	# Selected VS Base Anim
+	# Selected VS Base Animation
 	if selected:
 		anim_player.play("selected")
 	else:
@@ -38,7 +42,9 @@ func move_to(target_pos : Vector2, delta):
 	# Once reaches target...
 	if position.distance_to(target_pos) < min_dist:
 		move_flag.visible = false # hide move flag
-		owner.arrive_at_flag.emit()
+		arrived_at_flag = true
+	else:
+		arrived_at_flag = false
 
 func _on_hover():
 	hovering = true
