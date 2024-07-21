@@ -1,8 +1,7 @@
-[gd_scene load_steps=11 format=3 uid="uid://4c2lm3b10nkk"]
+[gd_scene load_steps=10 format=3 uid="uid://4c2lm3b10nkk"]
 
 [ext_resource type="Texture2D" uid="uid://58v6bixht213" path="res://Sprites/Placeholders/square.png" id="1_2llpe"]
 [ext_resource type="Script" path="res://Prefabs/PlayerCharacters/player.gd" id="1_4woq1"]
-[ext_resource type="PackedScene" uid="uid://isngwtgme5rj" path="res://Prefabs/Icons/MoveFlag.tscn" id="2_cy3g6"]
 [ext_resource type="Texture2D" uid="uid://cn167ags52cqp" path="res://Sprites/Placeholders/opencircle.png" id="3_prmun"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ekir"]
@@ -78,8 +77,6 @@ floor_stop_on_slope = false
 floor_block_on_wall = false
 script = ExtResource("1_4woq1")
 
-[node name="MoveFlag" parent="." instance=ExtResource("2_cy3g6")]
-
 [node name="SelectCircle" type="Sprite2D" parent="."]
 scale = Vector2(1, 0.8)
 texture = ExtResource("3_prmun")
@@ -92,7 +89,7 @@ texture = ExtResource("1_2llpe")
 
 [node name="SelectArea" type="Area2D" parent="."]
 collision_layer = 8
-collision_mask = 0
+collision_mask = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SelectArea"]
 position = Vector2(0, -35)
@@ -109,5 +106,7 @@ libraries = {
 "": SubResource("AnimationLibrary_m0035")
 }
 
+[connection signal="area_entered" from="SelectArea" to="." method="_selected_by_drag_selector"]
+[connection signal="area_exited" from="SelectArea" to="." method="_exited_selection"]
 [connection signal="mouse_entered" from="SelectArea" to="." method="_on_hover"]
 [connection signal="mouse_exited" from="SelectArea" to="." method="_on_stop_hover"]
