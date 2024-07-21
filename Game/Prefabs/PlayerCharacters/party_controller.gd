@@ -112,11 +112,19 @@ func _physics_process(_delta):
 		# Set all selected pcs to selected
 		for p in entered_ds_array:
 			p.select()
+		
+		# Reset AREA2D Component
 		init_pos = Vector2.ZERO
 		current_mpos = Vector2.ZERO
+		center_pos = Vector2.ZERO
+		ds_collision_component.position = Vector2.ZERO
+		ds_collision_component.shape.size.x = 0
+		ds_collision_component.shape.size.y = 0
+		
+		# Reset ENUM
 		current_input_type = ClickInputType.None
 	
-	# LMB is RELEASED
+	# LMB is RELEASED, do for ALL released Select inputs
 	if Input.is_action_just_released("Select") and deciding_input:
 		deciding_input = false
 		timer_active = false
@@ -136,36 +144,10 @@ func _physics_process(_delta):
 	match current_input_type:
 		# LMB to Move Selected Character(s) to the clicked position
 		ClickInputType.PlaceMoveFlag:
-			# If there are any, mark any pcs that are actively part of a move that 
-			# have already arrived as not having arrived since we're now giving them a new destination
-			if !moving_pcs.is_empty():
-				for p in moving_pcs:
-					p.arrived_at_flag = false
-			
-			# Get mouse position to move pcs to
-			clicked_pos = get_local_mouse_position()
-			moving_pcs = selected_pcs.duplicate()
-			
-			# Set new move flags for the selected pcs
-			if moving_pcs.size() > 1:
-				for i in moving_pcs.size():
-					moving_pcs[i].move_to(clicked_pos + formation_offsets[i])
-			# Don't use formations if only selecting 1 PC
-			elif moving_pcs.size() == 1:
-				moving_pcs[0].move_to(clicked_pos)
-			
-			# Reset Input Type
-			current_input_type = ClickInputType.None
-		
+			place_move_flag()
 		# LMB and Drag to Select Multiple Characters at once
 		ClickInputType.DragSelect:
-			current_mpos = get_local_mouse_position()
-			center_pos.x = (current_mpos.x + init_pos.x) / 2
-			center_pos.y = (current_mpos.y + init_pos.y) / 2
-			ds_collision_component.position = center_pos
-			ds_collision_component.shape.size.x = abs(current_mpos.x - init_pos.x)
-			ds_collision_component.shape.size.y = abs(current_mpos.y - init_pos.y)
-		
+			drag_select()
 		# Default if no input
 		ClickInputType.None:
 			pass
@@ -191,3 +173,33 @@ func reset_move_check():
 		for p in moving_pcs:
 			p.arrived_at_flag = false
 		moving_pcs.clear()
+
+func place_move_flag():
+	# If there are any, mark any pcs that are actively part of a move that 
+	# have already arrived as not having arrived since we're now giving them a new destination
+	if !moving_pcs.is_empty():
+		for p in moving_pcs:
+			p.arrived_at_flag = false
+	
+	# Get mouse position to move pcs to
+	clicked_pos = get_local_mouse_position()
+	moving_pcs = selected_pcs.duplicate()
+	
+	# Set new move flags for the selected pcs
+	if moving_pcs.size() > 1:
+		for i in moving_pcs.size():
+			moving_pcs[i].move_to(clicked_pos + formation_offsets[i])
+	# Don't use formations if only selecting 1 PC
+	elif moving_pcs.size() == 1:
+		moving_pcs[0].move_to(clicked_pos)
+	
+	# Reset Input Type
+	current_input_type = ClickInputType.None
+
+func drag_select():
+	current_mpos = get_local_mouse_position()
+	center_pos.x = (current_mpos.x + init_pos.x) / 2
+	center_pos.y = (current_mpos.y + init_pos.y) / 2
+	ds_collision_component.position = center_pos
+	ds_collision_component.shape.size.x = abs(current_mpos.x - init_pos.x)
+	ds_collision_component.shape.size.y = abs(current_mpos.y - init_pos.y)

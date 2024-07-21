@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=3 uid="uid://4c2lm3b10nkk"]
+[gd_scene load_steps=11 format=3 uid="uid://4c2lm3b10nkk"]
 
 [ext_resource type="Texture2D" uid="uid://58v6bixht213" path="res://Sprites/Placeholders/square.png" id="1_2llpe"]
 [ext_resource type="Script" path="res://Prefabs/PlayerCharacters/player.gd" id="1_4woq1"]
 [ext_resource type="Texture2D" uid="uid://cn167ags52cqp" path="res://Sprites/Placeholders/opencircle.png" id="3_prmun"]
+[ext_resource type="Texture2D" uid="uid://c27mdqb2yrcl1" path="res://Sprites/Placeholders/exclamation.png" id="4_cveuj"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ekir"]
 radius = 66.0
@@ -88,7 +89,7 @@ scale = Vector2(0.5625, 1)
 texture = ExtResource("1_2llpe")
 
 [node name="SelectArea" type="Area2D" parent="."]
-collision_layer = 8
+collision_layer = 128
 collision_mask = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SelectArea"]
@@ -105,6 +106,11 @@ debug_color = Color(0.380392, 0.517647, 0.862745, 0.419608)
 libraries = {
 "": SubResource("AnimationLibrary_m0035")
 }
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(0, -44)
+texture = ExtResource("4_cveuj")
 
 [connection signal="area_entered" from="SelectArea" to="." method="_selected_by_drag_selector"]
 [connection signal="area_exited" from="SelectArea" to="." method="_exited_selection"]

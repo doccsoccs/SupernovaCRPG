@@ -77,7 +77,8 @@ Select={
 
 2d_physics/layer_1="World"
 2d_physics/layer_2="PlayerCharacters"
-2d_physics/layer_4="Selectable"
+2d_physics/layer_4="DragSelectable"
+2d_physics/layer_8="Selectable"
 
 [rendering]
 

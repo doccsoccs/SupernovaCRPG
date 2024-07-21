@@ -13,6 +13,7 @@ var entered_drag_select : bool = false
 
 @onready var anim_player = $AnimationPlayer
 @onready var party_controller = $"../.."
+@onready var eds_test = $Sprite2D
 
 var move_flag
 var mf_index : int
@@ -22,14 +23,20 @@ func _process(_delta):
 	# Adds the selected PC to the list of selected PCs in the party controller
 	if hovering and Input.is_action_just_pressed("Select"):
 		party_controller.deselect_all()
-		selected = true
-		party_controller.selected_pcs.append(self)
+		select()
+		party_controller.entered_ds_array.clear()
 	
 	# Selected VS Base Animation
 	if selected:
 		anim_player.play("selected")
 	else:
 		anim_player.play("base")
+	
+	## TEST CODE
+	if entered_drag_select:
+		eds_test.visible = true
+	else:
+		eds_test.visible = false
 
 func _physics_process(delta):
 	if !arrived_at_flag:
