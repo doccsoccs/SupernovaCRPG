@@ -24,10 +24,11 @@ var hovering_on_pc : bool = false
 var init_pos : Vector2 = Vector2.ZERO
 var ds_width : float
 var ds_height : float
-var dragging : bool = false
+var dragging : bool = true
 var current_mpos : Vector2 = Vector2.ZERO
 var center_pos : Vector2 = Vector2.ZERO
 
+# Used to determine how the user is intending to interact with the interface
 enum ClickInputType { PlaceMoveFlag, DragSelect, None }
 var current_input_type : ClickInputType
 var entered_ds_array : Array[Character]
@@ -151,6 +152,15 @@ func _physics_process(_delta):
 		# Default if no input
 		ClickInputType.None:
 			pass
+	
+	queue_redraw()
+
+# Draws the Drag Select Indicator
+func _draw():
+	if current_input_type == ClickInputType.DragSelect:
+		var rect : Rect2 = Rect2(init_pos.x, init_pos.y, current_mpos.x - init_pos.x, current_mpos.y - init_pos.y)
+		draw_rect(rect, Color.GOLD, false, 10.0)
+		draw_rect(rect, Color(0.85, 0.65, 0.12, 0.2), true)
 
 # Deselect all selected PCs
 func deselect_all():

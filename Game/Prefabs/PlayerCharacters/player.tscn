@@ -5,11 +5,11 @@
 [ext_resource type="Texture2D" uid="uid://cn167ags52cqp" path="res://Sprites/Placeholders/opencircle.png" id="3_prmun"]
 [ext_resource type="Texture2D" uid="uid://c27mdqb2yrcl1" path="res://Sprites/Placeholders/exclamation.png" id="4_cveuj"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ekir"]
-radius = 66.0
-height = 176.0
-
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_canrr"]
+radius = 58.0
+height = 146.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_2ekir"]
 radius = 51.0
 height = 130.0
 
@@ -88,19 +88,19 @@ position = Vector2(0, -45)
 scale = Vector2(0.5625, 1)
 texture = ExtResource("1_2llpe")
 
+[node name="HitBox" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_canrr")
+debug_color = Color(0.984314, 0, 0.317647, 0.419608)
+
 [node name="SelectArea" type="Area2D" parent="."]
 collision_layer = 128
 collision_mask = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SelectArea"]
-position = Vector2(0, -35)
+rotation = 1.5708
 shape = SubResource("CapsuleShape2D_2ekir")
 debug_color = Color(0.423529, 0.894118, 1, 0.419608)
-
-[node name="HitBox" type="CollisionShape2D" parent="."]
-rotation = 1.5708
-shape = SubResource("CapsuleShape2D_canrr")
-debug_color = Color(0.380392, 0.517647, 0.862745, 0.419608)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {

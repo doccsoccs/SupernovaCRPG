@@ -1,0 +1,55 @@
+[gd_scene load_steps=5 format=3 uid="uid://b1l070yg8ba2j"]
+
+[ext_resource type="Script" path="res://Prefabs/PlayerCharacters/party_controller.gd" id="1_cy3r4"]
+[ext_resource type="PackedScene" uid="uid://4c2lm3b10nkk" path="res://Prefabs/PlayerCharacters/player.tscn" id="1_eexi7"]
+[ext_resource type="PackedScene" uid="uid://isngwtgme5rj" path="res://Prefabs/Icons/MoveFlag.tscn" id="3_0mfj1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_y6k4b"]
+size = Vector2(0, 0)
+
+[node name="PartyController" type="Node2D"]
+script = ExtResource("1_cy3r4")
+formation_offsets = Array[Vector2]([Vector2(-100, 0), Vector2(100, 0), Vector2(-100, 150), Vector2(100, 150), Vector2(-100, 300), Vector2(100, 300)])
+
+[node name="PCComponent" type="Node2D" parent="."]
+
+[node name="Player" parent="PCComponent" instance=ExtResource("1_eexi7")]
+position = Vector2(638, 686)
+
+[node name="Player2" parent="PCComponent" instance=ExtResource("1_eexi7")]
+position = Vector2(410, 168)
+
+[node name="Player3" parent="PCComponent" instance=ExtResource("1_eexi7")]
+position = Vector2(148, 188)
+
+[node name="Player4" parent="PCComponent" instance=ExtResource("1_eexi7")]
+position = Vector2(272, 520)
+
+[node name="Player5" parent="PCComponent" instance=ExtResource("1_eexi7")]
+position = Vector2(855, 386)
+
+[node name="Player6" parent="PCComponent" instance=ExtResource("1_eexi7")]
+position = Vector2(1388, 903)
+
+[node name="MFComponent" type="Node2D" parent="."]
+
+[node name="MoveFlag" parent="MFComponent" instance=ExtResource("3_0mfj1")]
+
+[node name="MoveFlag2" parent="MFComponent" instance=ExtResource("3_0mfj1")]
+
+[node name="MoveFlag3" parent="MFComponent" instance=ExtResource("3_0mfj1")]
+
+[node name="MoveFlag4" parent="MFComponent" instance=ExtResource("3_0mfj1")]
+
+[node name="MoveFlag5" parent="MFComponent" instance=ExtResource("3_0mfj1")]
+
+[node name="MoveFlag6" parent="MFComponent" instance=ExtResource("3_0mfj1")]
+
+[node name="DragSelector" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionComponent" type="CollisionShape2D" parent="DragSelector"]
+shape = SubResource("RectangleShape2D_y6k4b")
+debug_color = Color(0.615686, 0.6, 0, 0.419608)
