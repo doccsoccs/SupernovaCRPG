@@ -13,7 +13,7 @@ var entered_drag_select : bool = false
 
 @onready var anim_player = $AnimationPlayer
 @onready var party_controller = $"../.."
-@onready var eds_test = $Sprite2D
+@onready var eds_test = $Sprite2D # eds = "entered_drag_select"
 
 var move_flag
 var mf_index : int
@@ -64,10 +64,12 @@ func move_to(new_target_pos : Vector2):
 	arrived_at_flag = false
 	move_flag.position = target_pos
 
+# Selects this player character and adds them to the selected pcs array
 func select():
 	selected = true
 	party_controller.selected_pcs.append(self)
 
+# Mouse Over Area Signal that determines if the user is hovering over a player character
 func _on_hover():
 	hovering = true
 func _on_stop_hover():

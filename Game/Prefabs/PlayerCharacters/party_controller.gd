@@ -9,6 +9,7 @@ var selected_pcs : Array[Character]
 @onready var mf_component = $MFComponent
 @onready var drag_selector = $DragSelector
 @onready var ds_collision_component = $DragSelector/CollisionComponent
+@onready var camera = $"../MapCamera"
 
 # Counts / Index
 var pc_count : int = 0
@@ -35,8 +36,8 @@ var entered_ds_array : Array[Character]
 var deciding_input : bool = false
 var timer_active : bool = false
 var input_timer : float = 0.0
-var pmf_input_time : float = 0.05 # place move flag input time
-var min_drag_dist : float = 75.0 # how far must be drawn for a SELECT input to count as a DragSelect
+var pmf_input_time : float = 0.1 # place move flag input time
+var min_drag_dist : float = 50.0 # how far must be drawn for a SELECT input to count as a DragSelect
 var assume_pmf : bool = false
 
 @export var formation_offsets : Array[Vector2] = []
@@ -72,7 +73,9 @@ func _process(delta):
 	# Timer for Input Checks
 	if timer_active:
 		input_timer += delta
-		if input_timer >= pmf_input_time and init_pos.distance_to(get_local_mouse_position()) > min_drag_dist:
+		if input_timer <= pmf_input_time:
+			assume_pmf = true
+		elif init_pos.distance_to(get_local_mouse_position()) > min_drag_dist:
 			current_input_type = ClickInputType.DragSelect
 			assume_pmf = false
 		else:
@@ -92,6 +95,7 @@ func _physics_process(_delta):
 	# If held and move mouse between click and release --> DragSelect
 	# If held and don't move between click and release --> PlaceMoveFlag
 	
+#region LMB Input Determination
 	# LMB while not hovering on a PC and while having at least one PC selected
 	# Potential for either PLACE MOVE FLAG or DRAG SELECT
 	if Input.is_action_just_pressed("Select") and selected_pcs.size() > 0 and !hovering_on_pc:
@@ -140,6 +144,7 @@ func _physics_process(_delta):
 	# LMB is RELEASED, must have been in DragSelect mode
 	elif Input.is_action_just_released("Select") and !deciding_input:
 		current_input_type = ClickInputType.None
+#endregion
 	
 	# Enact input behavior based on an enum
 	match current_input_type:

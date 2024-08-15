@@ -20,6 +20,7 @@ var dragging : bool = false
 var current_mouse_pos : Vector2 = Vector2.ZERO
 var prev_mouse_pos : Vector2 = Vector2.ZERO
 var drag_mult : float
+var camera_is_moving : bool = false
 
 # CAMERA BOUNDS VARIABLES
 var xbound : float
@@ -56,15 +57,24 @@ func _physics_process(delta):
 	if Input.is_action_pressed("CameraUp") and !dragging:
 		direction += Vector2(0,-1)
 		using_keyboard = true
+		camera_is_moving = true
 	if Input.is_action_pressed("CameraDown") and !dragging:
 		direction += Vector2(0,1)
 		using_keyboard = true
+		camera_is_moving = true
 	if Input.is_action_pressed("CameraLeft") and !dragging:
 		direction += Vector2(-1,0)
 		using_keyboard = true
+		camera_is_moving = true
 	if Input.is_action_pressed("CameraRight") and !dragging:
 		direction += Vector2(1,0)
 		using_keyboard = true
+		camera_is_moving = true
+	
+	# Determine when the camera is not being moved by WASD controls
+	if !using_keyboard and (Input.is_action_just_released("CameraUp") or Input.is_action_just_released("CameraDown") or \
+	   Input.is_action_just_released("CameraLeft") or Input.is_action_just_released("CameraRight")):
+		camera_is_moving = false
 	
 	# Screen Push
 	if push_up and !using_keyboard and !dragging:
