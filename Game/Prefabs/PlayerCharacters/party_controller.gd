@@ -2,11 +2,13 @@ extends Node2D
 
 var party_members : Array[Character]
 var move_flags : Array[Node2D]
+var preview_mfs : Array[Node2D]
 var selected_pcs : Array[Character]
 
 # Components
 @onready var pc_component = $PCComponent
 @onready var mf_component = $MFComponent
+@onready var mf_preview_component = $MFPreviewComponent
 @onready var drag_selector = $DragSelector
 @onready var ds_collision_component = $DragSelector/CollisionComponent
 @onready var camera = $"../MapCamera"
@@ -42,12 +44,14 @@ var assume_pmf : bool = false
 
 @export var formation_offsets : Array[Vector2] = []
 
-# Called when the node enters the scene tree for the first time.
+# Called when the node enters the scene tree fodsr the first time.
 func _ready():
 	for pc in pc_component.get_children():
 		party_members.append(pc)
 	for mf in mf_component.get_children():
 		move_flags.append(mf)
+	for pmf in mf_preview_component.get_children():
+		preview_mfs.append(pmf)
 	pc_count = party_members.size()
 	mf_count = pc_count
 	
@@ -95,13 +99,19 @@ func _physics_process(_delta):
 	# If held and move mouse between click and release --> DragSelect
 	# If held and don't move between click and release --> PlaceMoveFlag
 	
-#region LMB Input Determination
+#region Input Determination
 	# LMB while not hovering on a PC and while having at least one PC selected
 	# Potential for either PLACE MOVE FLAG or DRAG SELECT
 	if Input.is_action_just_pressed("Select") and selected_pcs.size() > 0 and !hovering_on_pc:
 		deciding_input = true
 		timer_active = true
 		init_pos = get_local_mouse_position()
+	
+	# ELSE IF --> RMB can be used to place a move flag too
+	# If held RMB can be used to change the angle of the move formation
+	elif Input.is_action_just_pressed("AngledMoveSelect") and selected_pcs.size() > 0 and !hovering_on_pc:
+		# Display angled move flags
+		pass
 	
 	# ELSE IF --> LMB while not hovering on a PC and while no PCs are selected 
 	# Must be drag select
@@ -144,6 +154,10 @@ func _physics_process(_delta):
 	# LMB is RELEASED, must have been in DragSelect mode
 	elif Input.is_action_just_released("Select") and !deciding_input:
 		current_input_type = ClickInputType.None
+	
+	# RMB is Released, set moveflag on
+	if Input.is_action_just_released("AngledMoveSelect"):
+		current_input_type = ClickInputType.PlaceMoveFlag
 #endregion
 	
 	# Enact input behavior based on an enum
@@ -201,9 +215,10 @@ func place_move_flag():
 	moving_pcs = selected_pcs.duplicate()
 	
 	# Set new move flags for the selected pcs
+	# Rotates formation offsets based on 1st position party member and clicked position
 	if moving_pcs.size() > 1:
 		for i in moving_pcs.size():
-			moving_pcs[i].move_to(clicked_pos + formation_offsets[i])
+			moving_pcs[i].move_to(clicked_pos + formation_offsets[i].rotated(get_move_rotation(moving_pcs[0])))
 	# Don't use formations if only selecting 1 PC
 	elif moving_pcs.size() == 1:
 		moving_pcs[0].move_to(clicked_pos)
@@ -218,3 +233,7 @@ func drag_select():
 	ds_collision_component.position = center_pos
 	ds_collision_component.shape.size.x = abs(current_mpos.x - init_pos.x)
 	ds_collision_component.shape.size.y = abs(current_mpos.y - init_pos.y)
+
+func get_move_rotation(first_selected: CharacterBody2D) -> float:
+	var test = (clicked_pos - first_selected.position).angle() + PI
+	return test

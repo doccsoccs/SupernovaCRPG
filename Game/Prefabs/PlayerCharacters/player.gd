@@ -15,8 +15,8 @@ var entered_drag_select : bool = false
 @onready var party_controller = $"../.."
 @onready var eds_test = $Sprite2D # eds = "entered_drag_select"
 
-var move_flag
-var mf_index : int
+var move_flag: Node2D
+var mf_index: int
 
 func _process(_delta):
 	# LMB to select a PC
