@@ -31,6 +31,11 @@ var dragging : bool = true
 var current_mpos : Vector2 = Vector2.ZERO
 var center_pos : Vector2 = Vector2.ZERO
 
+# RMB Controls
+var holding_rmb: bool = false
+var formation_angle: float
+var use_rmb_rotated_offsets: bool = false
+
 # Used to determine how the user is intending to interact with the interface
 enum ClickInputType { PlaceMoveFlag, DragSelect, None }
 var current_input_type : ClickInputType
@@ -84,6 +89,22 @@ func _process(delta):
 			assume_pmf = false
 		else:
 			assume_pmf = true
+	
+	# Get the angle between the RMB Clicked Pos and current mouse position
+	if holding_rmb and selected_pcs.size() > 1:
+		if clicked_pos != get_local_mouse_position():
+			formation_angle = (clicked_pos - get_local_mouse_position()).angle()
+			
+			# Reveals preview move flags here to prevent jarring movement from 
+			# the assumed LMB angle to the initial manual RMB angle
+			for i in selected_pcs.size():
+				preview_mfs[i].position = clicked_pos + formation_offsets[i].rotated(formation_angle)
+				preview_mfs[i].visible = true
+		else:
+			formation_angle = (clicked_pos - selected_pcs[0].position).angle() + PI
+	else:
+		for i in preview_mfs.size():
+			preview_mfs[i].visible = false
 
 func _physics_process(_delta):
 	# Only be able to set a new move flag if not hovering over a selectable game object
@@ -94,11 +115,20 @@ func _physics_process(_delta):
 		else:
 			hovering_on_pc = false
 	
+	queue_redraw()
+
+# Draws the Drag Select Indicator
+func _draw():
+	if current_input_type == ClickInputType.DragSelect:
+		var rect : Rect2 = Rect2(init_pos.x, init_pos.y, current_mpos.x - init_pos.x, current_mpos.y - init_pos.y)
+		draw_rect(rect, Color.GOLD, false, 10.0)
+		draw_rect(rect, Color(0.85, 0.65, 0.12, 0.2), true)
+
+func _input(_event):
 	# Determine which input behavior is being used
 	# If short interval between click and release --> PlaceMoveFlag
 	# If held and move mouse between click and release --> DragSelect
 	# If held and don't move between click and release --> PlaceMoveFlag
-	
 #region Input Determination
 	# LMB while not hovering on a PC and while having at least one PC selected
 	# Potential for either PLACE MOVE FLAG or DRAG SELECT
@@ -109,9 +139,11 @@ func _physics_process(_delta):
 	
 	# ELSE IF --> RMB can be used to place a move flag too
 	# If held RMB can be used to change the angle of the move formation
-	elif Input.is_action_just_pressed("AngledMoveSelect") and selected_pcs.size() > 0 and !hovering_on_pc:
+	elif Input.is_action_just_pressed("AngledMoveSelect") and selected_pcs.size() > 0 and \
+	!hovering_on_pc and !deciding_input:
 		# Display angled move flags
-		pass
+		holding_rmb = true
+		clicked_pos = get_local_mouse_position()
 	
 	# ELSE IF --> LMB while not hovering on a PC and while no PCs are selected 
 	# Must be drag select
@@ -156,7 +188,9 @@ func _physics_process(_delta):
 		current_input_type = ClickInputType.None
 	
 	# RMB is Released, set moveflag on
-	if Input.is_action_just_released("AngledMoveSelect"):
+	if Input.is_action_just_released("AngledMoveSelect") and !deciding_input:
+		holding_rmb = false
+		use_rmb_rotated_offsets = true
 		current_input_type = ClickInputType.PlaceMoveFlag
 #endregion
 	
@@ -171,15 +205,6 @@ func _physics_process(_delta):
 		# Default if no input
 		ClickInputType.None:
 			pass
-	
-	queue_redraw()
-
-# Draws the Drag Select Indicator
-func _draw():
-	if current_input_type == ClickInputType.DragSelect:
-		var rect : Rect2 = Rect2(init_pos.x, init_pos.y, current_mpos.x - init_pos.x, current_mpos.y - init_pos.y)
-		draw_rect(rect, Color.GOLD, false, 10.0)
-		draw_rect(rect, Color(0.85, 0.65, 0.12, 0.2), true)
 
 # Deselect all selected PCs
 func deselect_all():
@@ -218,10 +243,14 @@ func place_move_flag():
 	# Rotates formation offsets based on 1st position party member and clicked position
 	if moving_pcs.size() > 1:
 		for i in moving_pcs.size():
-			moving_pcs[i].move_to(clicked_pos + formation_offsets[i].rotated(get_move_rotation(moving_pcs[0])))
+			if use_rmb_rotated_offsets:
+				moving_pcs[i].move_to(preview_mfs[i].position)
+			else:
+				moving_pcs[i].move_to(clicked_pos + formation_offsets[i].rotated(get_move_rotation(moving_pcs[0])))
 	# Don't use formations if only selecting 1 PC
 	elif moving_pcs.size() == 1:
 		moving_pcs[0].move_to(clicked_pos)
+	use_rmb_rotated_offsets = false
 	
 	# Reset Input Type
 	current_input_type = ClickInputType.None
@@ -235,5 +264,4 @@ func drag_select():
 	ds_collision_component.shape.size.y = abs(current_mpos.y - init_pos.y)
 
 func get_move_rotation(first_selected: CharacterBody2D) -> float:
-	var test = (clicked_pos - first_selected.position).angle() + PI
-	return test
+	return (clicked_pos - first_selected.position).angle() + PI
