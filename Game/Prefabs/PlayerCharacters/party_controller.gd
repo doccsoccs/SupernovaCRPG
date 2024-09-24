@@ -12,6 +12,8 @@ var selected_pcs : Array[Character]
 @onready var drag_selector = $DragSelector
 @onready var ds_collision_component = $DragSelector/CollisionComponent
 @onready var camera = $"../MapCamera"
+@onready var map = $"../MapSprite"
+@onready var collision_tester = $TerrainCollisionTester
 
 # Counts / Index
 var pc_count : int = 0
@@ -21,7 +23,10 @@ var mf_index_assigner : int = 0
 # Party Movement
 var moving_pcs : Array[Character]
 var clicked_pos : Vector2 = Vector2.ZERO
-var hovering_on_pc : bool = false
+var hovering_on_pc: bool = false
+var hovering_on_oob: bool = false # oob = out of bounds
+var adjusted_legal_pos: Vector2 = Vector2.ZERO
+var adjust_for_oob: bool = false
 
 # Drag Selecting
 var init_pos : Vector2 = Vector2.ZERO
@@ -35,6 +40,10 @@ var center_pos : Vector2 = Vector2.ZERO
 var holding_rmb: bool = false
 var formation_angle: float
 var use_rmb_rotated_offsets: bool = false
+var valid_rmb_input: bool = false
+
+# Terrain Info
+@onready var terrain_component = $"../Terrain"
 
 # Used to determine how the user is intending to interact with the interface
 enum ClickInputType { PlaceMoveFlag, DragSelect, None }
@@ -87,21 +96,22 @@ func _process(delta):
 		elif init_pos.distance_to(get_local_mouse_position()) > min_drag_dist:
 			current_input_type = ClickInputType.DragSelect
 			assume_pmf = false
-		else:
+		elif !hovering_on_oob:
 			assume_pmf = true
 	
 	# Get the angle between the RMB Clicked Pos and current mouse position
 	if holding_rmb and selected_pcs.size() > 1:
 		if clicked_pos != get_local_mouse_position():
 			formation_angle = (clicked_pos - get_local_mouse_position()).angle()
-			
-			# Reveals preview move flags here to prevent jarring movement from 
-			# the assumed LMB angle to the initial manual RMB angle
-			for i in selected_pcs.size():
-				preview_mfs[i].position = clicked_pos + formation_offsets[i].rotated(formation_angle)
-				preview_mfs[i].visible = true
 		else:
 			formation_angle = (clicked_pos - selected_pcs[0].position).angle() + PI
+		
+		# Reveals preview move flags here to prevent jarring movement from 
+		# the assumed LMB angle to the initial manual RMB angle
+		for i in selected_pcs.size():
+			preview_mfs[i].position = clicked_pos + formation_offsets[i].rotated(formation_angle)
+			preview_mfs[i].visible = true
+		
 	else:
 		for i in preview_mfs.size():
 			preview_mfs[i].visible = false
@@ -115,6 +125,7 @@ func _physics_process(_delta):
 		else:
 			hovering_on_pc = false
 	
+	# Calls the draw function for DRAG SELECT
 	queue_redraw()
 
 # Draws the Drag Select Indicator
@@ -124,32 +135,45 @@ func _draw():
 		draw_rect(rect, Color.GOLD, false, 10.0)
 		draw_rect(rect, Color(0.85, 0.65, 0.12, 0.2), true)
 
+# Handles MouseButton controls for environment maps
 func _input(_event):
 	# Determine which input behavior is being used
 	# If short interval between click and release --> PlaceMoveFlag
 	# If held and move mouse between click and release --> DragSelect
 	# If held and don't move between click and release --> PlaceMoveFlag
+	
+	# Movement when clicking on inaccessible terrain (LMB)
+	# Get the clicked point, compare distances between all edges and verteces of clicked polygon
+	# Get the closest point to the outside of the polygon
+	# Any points that fall out of bounds are thrown out
+	# Place move flags some distance away from the closest point outside the polygon
+	
+	# Movement when angling formation inside inaccessible terrain (RMB)
+	# Determine which move flags are inside inaccessible terrain
+	# Place move flags some distance away from the closest point outside the polygon
+	
 #region Input Determination
+	#----------------------------------------------------------------------------------------------
+	#                                      LEFT MOUSE BUTTON
+	#----------------------------------------------------------------------------------------------
 	# LMB while not hovering on a PC and while having at least one PC selected
 	# Potential for either PLACE MOVE FLAG or DRAG SELECT
 	if Input.is_action_just_pressed("Select") and selected_pcs.size() > 0 and !hovering_on_pc:
 		deciding_input = true
 		timer_active = true
 		init_pos = get_local_mouse_position()
-	
-	# ELSE IF --> RMB can be used to place a move flag too
-	# If held RMB can be used to change the angle of the move formation
-	elif Input.is_action_just_pressed("AngledMoveSelect") and selected_pcs.size() > 0 and \
-	!hovering_on_pc and !deciding_input:
-		# Display angled move flags
-		holding_rmb = true
-		clicked_pos = get_local_mouse_position()
+		
+		if hovering_on_oob:
+			adjust_for_oob = true
 	
 	# ELSE IF --> LMB while not hovering on a PC and while no PCs are selected 
 	# Must be drag select
 	elif Input.is_action_just_pressed("Select") and selected_pcs.size() == 0 and !hovering_on_pc:
 		init_pos = get_local_mouse_position()
 		current_input_type = ClickInputType.DragSelect
+		
+		if hovering_on_oob:
+			adjust_for_oob = true
 	
 	# LMB is RELEASED
 	# Select objects which have entered and remained inside the SelectArea
@@ -187,11 +211,31 @@ func _input(_event):
 	elif Input.is_action_just_released("Select") and !deciding_input:
 		current_input_type = ClickInputType.None
 	
+	# ---------------------------------------------------------------------------------------------
+	#                                      RIGHT MOUSE BUTTON
+	# ---------------------------------------------------------------------------------------------
+	# RMB can be used to place a move flag too
+	# If held RMB can be used to change the angle of the move formation
+	if Input.is_action_just_pressed("AngledMoveSelect") and selected_pcs.size() > 0 and \
+	!hovering_on_pc and !hovering_on_oob and !deciding_input:
+		# Display angled move flags
+		clicked_pos = get_local_mouse_position()
+		
+		# Tells the game to let the input go through on RMB released
+		# matters for rmb movement where the mouse moves into unaccessible terrain
+		if selected_pcs.size() > 1:
+			holding_rmb = true
+			valid_rmb_input = true
+		else:
+			holding_rmb = false
+			valid_rmb_input = false
+	
 	# RMB is Released, set moveflag on
-	if Input.is_action_just_released("AngledMoveSelect") and !deciding_input:
+	if Input.is_action_just_released("AngledMoveSelect") and !deciding_input and valid_rmb_input:
 		holding_rmb = false
 		use_rmb_rotated_offsets = true
 		current_input_type = ClickInputType.PlaceMoveFlag
+		valid_rmb_input = false # reset value
 #endregion
 	
 	# Enact input behavior based on an enum
@@ -228,6 +272,7 @@ func reset_move_check():
 			p.arrived_at_flag = false
 		moving_pcs.clear()
 
+# Initializes a movement operation for selected party members 
 func place_move_flag():
 	# If there are any, mark any pcs that are actively part of a move that 
 	# have already arrived as not having arrived since we're now giving them a new destination
@@ -242,19 +287,35 @@ func place_move_flag():
 	# Set new move flags for the selected pcs
 	# Rotates formation offsets based on 1st position party member and clicked position
 	if moving_pcs.size() > 1:
+		
 		for i in moving_pcs.size():
-			if use_rmb_rotated_offsets:
+			if adjust_for_oob: # LMB into OOB terrain
+				var target_vertex: Vector2 = get_nearest_inbound_pos(terrain_component.hovered_polygon, clicked_pos)
+				moving_pcs[i].move_to(get_valid_move_pos(moving_pcs[i].position, target_vertex))
+				
+			elif use_rmb_rotated_offsets: # RMB formation rotation
+				if get_colliding_polygon(preview_mfs[i].position) != null:
+					var vertex: Vector2 = get_nearest_inbound_pos(get_colliding_polygon(preview_mfs[i].position), clicked_pos)
+					preview_mfs[i].position = get_valid_move_pos(moving_pcs[i].position, vertex)
 				moving_pcs[i].move_to(preview_mfs[i].position)
-			else:
-				moving_pcs[i].move_to(clicked_pos + formation_offsets[i].rotated(get_move_rotation(moving_pcs[0])))
+			
+			else: # regular placement
+				var pos: Vector2 = clicked_pos + formation_offsets[i].rotated(get_move_rotation(moving_pcs[0]))
+				if get_colliding_polygon(pos) != null:
+					var vertex: Vector2 = get_nearest_inbound_pos(get_colliding_polygon(pos), clicked_pos)
+					pos = get_valid_move_pos(moving_pcs[i].position, vertex)
+				moving_pcs[i].move_to(pos)
+			
 	# Don't use formations if only selecting 1 PC
 	elif moving_pcs.size() == 1:
 		moving_pcs[0].move_to(clicked_pos)
 	use_rmb_rotated_offsets = false
+	adjust_for_oob = false
 	
 	# Reset Input Type
 	current_input_type = ClickInputType.None
 
+# Determines dimensions of drag select area
 func drag_select():
 	current_mpos = get_local_mouse_position()
 	center_pos.x = (current_mpos.x + init_pos.x) / 2
@@ -263,5 +324,107 @@ func drag_select():
 	ds_collision_component.shape.size.x = abs(current_mpos.x - init_pos.x)
 	ds_collision_component.shape.size.y = abs(current_mpos.y - init_pos.y)
 
+# Returns a radian value used to denote the rotation of a party formation after LMB 
 func get_move_rotation(first_selected: CharacterBody2D) -> float:
 	return (clicked_pos - first_selected.position).angle() + PI
+
+# Calculates the nearest valid position for a party member to move when the user 
+# clicks on inaccessible terrain. 
+# Polygon is assumed to have more than 2 verteces.
+func get_nearest_inbound_pos(terrain: CollisionPolygon2D, target_pos: Vector2) -> Vector2:
+	var polygon_verteces: PackedVector2Array = terrain.polygon
+	
+	# Check against perpendicular edge intersects
+	# Get the slope of a line between 2 verteces (slope =(y₂ - y₁)/(x₂ - x₁))
+	# and calculate its "c" (where the line intersects a y-axis)
+	# Get that the negative reciprocal of that slope (ie. 5 --> -1/5)
+	# Find where the lines intersect, that's our edge point
+	
+	#var edge_points: Array[Vector2]
+	#
+	#for i in range(0, polygon_verteces.size()):
+		#var poly_slope: float
+		#var poly_y_int: float
+		#var input_slope: float
+		#var input_y_int: float
+		#if i < polygon_verteces.size() - 1:
+			#poly_slope = (polygon_verteces[i+1].y - polygon_verteces[i].y)/							\
+						 #(polygon_verteces[i+1].x - polygon_verteces[i].x)
+			#poly_y_int = polygon_verteces[i].y - (poly_slope * polygon_verteces[i].x) # (b = y - mx)
+			#input_slope = -1/poly_slope
+			#input_y_int = target_pos.y - (input_slope * target_pos.x)
+		#else:
+			#poly_slope = (polygon_verteces[polygon_verteces.size()-1].y - polygon_verteces[0].y)/							\
+						 #(polygon_verteces[polygon_verteces.size()-1].x - polygon_verteces[0].x)
+			#poly_y_int = polygon_verteces[0].y - (poly_slope * polygon_verteces[0].x) # (b = y - mx)
+			#input_slope = -1/poly_slope
+			#input_y_int = target_pos.y - (input_slope * target_pos.x)
+		#
+		#
+		## y = mx + b --> ax + by + c = 0 ~= mx - y + b
+		## a = slope, b = 1, c = y-intercept
+		## x-pos = (b1c2 - b2c1) / (a1b2 - a2b1) --> (c2 - c1) / (a1 - a2)
+		## y-pos = (a2c1 - a1c2) / (a1b2 - a2b1) --> (a2c1 - a1c2) / (a1 - a2)
+		#var edge_intersect_pos: Vector2
+		#edge_intersect_pos.x = (input_y_int - poly_y_int) / (poly_slope - input_slope)
+		#edge_intersect_pos.y = ((input_slope * poly_y_int) - (poly_slope * input_y_int)) / (poly_slope - input_slope)
+		#
+		#if is_point_in_bounds(edge_intersect_pos):
+			#edge_points.append(edge_intersect_pos)
+	
+	# Append all verteces and perpendicular edge points to an array to test for which is closest
+	var test_pts: Array[Vector2] = []
+	for i in polygon_verteces.size():
+		test_pts.append(polygon_verteces[i])
+	#for i in edge_points.size():
+		#test_pts.append(edge_points[i])
+	
+	var closest_pos: Vector2 = test_pts[0]
+	
+	# Check distances between the clicked pos and relevant verteces and edges
+	for i in range(1, test_pts.size()):
+		if target_pos.distance_to(test_pts[i]) < target_pos.distance_to(closest_pos)\
+		and is_point_in_bounds(test_pts[i]): # don't return an out of bounds point
+			closest_pos = test_pts[i]
+	
+	return closest_pos
+
+func get_valid_move_pos(pc_pos: Vector2, vertex: Vector2) -> Vector2:
+	const segments: int = 10
+	var test_pos: Vector2 = pc_pos
+	var pc_to_vertex: Vector2 = vertex - pc_pos
+	var segment: Vector2 = pc_to_vertex / segments 
+	var found: bool = false
+	var nearest_valid_pos: Vector2 = pc_pos
+	
+	for i in segments:
+		test_pos += segment
+		if get_colliding_polygon(test_pos):
+			found = true
+		else:
+			nearest_valid_pos = test_pos
+	
+	return nearest_valid_pos
+
+# Returns true if the given point detects a collision with layer 1 (World), and false if not
+# Used for detecting move flag overlap with inaccessible terrain
+func get_colliding_polygon(pos: Vector2) -> CollisionPolygon2D:
+	collision_tester.position = pos
+	var collision_info: KinematicCollision2D = collision_tester.move_and_collide(collision_tester.velocity * get_process_delta_time(), true)
+	if collision_info != null:
+		if collision_info.get_collider() is StaticBody2D: # breaks if detects a staticbody2d with no child
+			return collision_info.get_collider().get_child(0)
+		else:
+			return null
+	else:
+		return null
+
+# Returns a bool dependent on whether or not a Vector2 falls in or out of a map bounds
+# Returns true if the point is within bounds, and false if not
+func is_point_in_bounds(pos: Vector2) -> bool:
+	var w: float = map.map_width * map.scale.x
+	var h: float = map.map_height * map.scale.x
+	if pos.x < 0 or pos.x > w or pos.y < 0 or pos.y > h:
+		return false 
+	else:
+		return true

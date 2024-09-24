@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://b1l070yg8ba2j"]
+[gd_scene load_steps=6 format=3 uid="uid://b1l070yg8ba2j"]
 
 [ext_resource type="Script" path="res://Prefabs/PlayerCharacters/party_controller.gd" id="1_cy3r4"]
 [ext_resource type="PackedScene" uid="uid://4c2lm3b10nkk" path="res://Prefabs/PlayerCharacters/player.tscn" id="1_eexi7"]
@@ -6,6 +6,9 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y6k4b"]
 size = Vector2(0, 0)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_u0wm8"]
+radius = 50.0
 
 [node name="PartyController" type="Node2D"]
 script = ExtResource("1_cy3r4")
@@ -67,3 +70,9 @@ monitoring = false
 [node name="CollisionComponent" type="CollisionShape2D" parent="DragSelector"]
 shape = SubResource("RectangleShape2D_y6k4b")
 debug_color = Color(0.615686, 0.6, 0, 0.419608)
+
+[node name="TerrainCollisionTester" type="CharacterBody2D" parent="."]
+collision_layer = 0
+
+[node name="CollisionComponent" type="CollisionShape2D" parent="TerrainCollisionTester"]
+shape = SubResource("CircleShape2D_u0wm8")

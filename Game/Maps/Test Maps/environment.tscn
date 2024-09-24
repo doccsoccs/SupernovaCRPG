@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://ds33s2n2m77jy"]
+[gd_scene load_steps=6 format=3 uid="uid://ds33s2n2m77jy"]
 
 [ext_resource type="Texture2D" uid="uid://b4i2t8fbpujqw" path="res://Maps/Placeholders/testmap1_sprite.png" id="1_c7t32"]
+[ext_resource type="Script" path="res://Maps/Test Maps/map.gd" id="2_c5mvg"]
 [ext_resource type="PackedScene" uid="uid://c5dppwj56yf3t" path="res://Cameras/map_camera.tscn" id="3_ujmm8"]
 [ext_resource type="PackedScene" uid="uid://b1l070yg8ba2j" path="res://Prefabs/PlayerCharacters/party_controller.tscn" id="3_x8nns"]
+[ext_resource type="Script" path="res://Maps/Test Maps/terrain.gd" id="4_ogavo"]
 
 [node name="TestMap1" type="Node2D"]
 
@@ -10,9 +12,34 @@
 scale = Vector2(5, 5)
 texture = ExtResource("1_c7t32")
 centered = false
+script = ExtResource("2_c5mvg")
 
 [node name="MapCamera" parent="." instance=ExtResource("3_ujmm8")]
 position = Vector2(1080, 639)
 
 [node name="PartyController" parent="." instance=ExtResource("3_x8nns")]
 z_index = 1
+
+[node name="Terrain" type="Node" parent="."]
+script = ExtResource("4_ogavo")
+
+[node name="StaticBody" type="StaticBody2D" parent="Terrain"]
+collision_mask = 0
+input_pickable = true
+
+[node name="CollisionPolygonComponent" type="CollisionPolygon2D" parent="Terrain/StaticBody"]
+polygon = PackedVector2Array(-28, 1382, 620, 1426, 1000, 1538, 1201, 1644, 1692, 2102, 1956, 2231, 2143, 2284, 2663, 2276, 3012, 2204, 3251, 2005, 3515, 1897, 3854, 1769, 3869, 2734, -32, 2744)
+
+[node name="StaticBody2" type="StaticBody2D" parent="Terrain"]
+collision_mask = 0
+input_pickable = true
+
+[node name="CollisionPolygonComponent" type="CollisionPolygon2D" parent="Terrain/StaticBody2"]
+polygon = PackedVector2Array(1617, 1001, 1752, 1223, 1885, 1323, 2127, 1455, 2303, 1614, 2407, 1696, 2637, 1713, 2894, 1639, 3102, 1482, 3102, 1425, 3000, 1287, 2517, 1158, 1731, 978)
+
+[node name="StaticBody3" type="StaticBody2D" parent="Terrain"]
+collision_mask = 0
+input_pickable = true
+
+[node name="CollisionPolygonComponent" type="CollisionPolygon2D" parent="Terrain/StaticBody3"]
+polygon = PackedVector2Array(1525, -39, 1544, 52, 1720, 236, 2011, 351, 2233, 375, 2940, 364, 3084, 354, 3381, 468, 3642, 1136, 3878, 1303, 3892, -58)
