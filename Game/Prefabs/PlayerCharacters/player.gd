@@ -1,7 +1,7 @@
 extends CharacterBody2D
 class_name Character
 
-@export var move_speed : float = 1000.0
+@export var move_speed : float = 1500.0
 var direction : Vector2 = Vector2.ZERO
 var min_dist : float = 20.0
 var arrived_at_flag : bool = true
@@ -14,6 +14,7 @@ var entered_drag_select : bool = false
 @onready var anim_player = $AnimationPlayer
 @onready var party_controller = $"../.."
 @onready var eds_test = $Sprite2D # eds = "entered_drag_select"
+@onready var agent = $NavigationAgent2D
 
 var move_flag: Node2D
 var mf_index: int
@@ -45,7 +46,7 @@ func _physics_process(delta):
 
 # Move the PC - runs every physics frame 
 func move(delta):
-	direction = (target_pos - position).normalized()
+	direction = (agent.get_next_path_position() - position).normalized()
 	velocity += direction * move_speed * delta
 	position += velocity
 	velocity = Vector2.ZERO
@@ -61,6 +62,7 @@ func move(delta):
 # Sets new move target
 func move_to(new_target_pos : Vector2):
 	target_pos = new_target_pos
+	agent.target_position = target_pos
 	arrived_at_flag = false
 	move_flag.position = target_pos
 

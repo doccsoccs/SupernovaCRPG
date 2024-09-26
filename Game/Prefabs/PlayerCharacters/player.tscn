@@ -71,6 +71,7 @@ _data = {
 process_mode = 1
 z_index = 1
 collision_layer = 2
+collision_mask = 0
 motion_mode = 1
 slide_on_ceiling = false
 floor_stop_on_slope = false
@@ -110,6 +111,15 @@ libraries = {
 visible = false
 position = Vector2(0, -44)
 texture = ExtResource("4_cveuj")
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+avoidance_enabled = true
+radius = 58.0
+neighbor_distance = 200.0
+max_neighbors = 5
+avoidance_layers = 2
+avoidance_mask = 3
+debug_enabled = true
 
 [connection signal="area_entered" from="SelectArea" to="." method="_selected_by_drag_selector"]
 [connection signal="area_exited" from="SelectArea" to="." method="_exited_selection"]

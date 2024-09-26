@@ -152,7 +152,7 @@ func _input(_event):
 	# Determine which move flags are inside inaccessible terrain
 	# Place move flags some distance away from the closest point outside the polygon
 	
-#region Input Determination
+#region Movement Input Determination
 	#----------------------------------------------------------------------------------------------
 	#                                      LEFT MOUSE BUTTON
 	#----------------------------------------------------------------------------------------------
@@ -249,6 +249,12 @@ func _input(_event):
 		# Default if no input
 		ClickInputType.None:
 			pass
+	
+	# SELECT ALL PARTY CHARACTERS
+	if Input.is_action_just_pressed("SelectAllCharacters"):
+		selected_pcs.clear()
+		for i in party_members.size():
+			party_members[i].select()
 
 # Deselect all selected PCs
 func deselect_all():
@@ -399,12 +405,14 @@ func get_valid_move_pos(pc_pos: Vector2, vertex: Vector2) -> Vector2:
 	
 	for i in segments:
 		test_pos += segment
-		if get_colliding_polygon(test_pos):
-			found = true
-		else:
+		if !get_colliding_polygon(test_pos):
 			nearest_valid_pos = test_pos
+			found = true
 	
-	return nearest_valid_pos
+	if found:
+		return nearest_valid_pos
+	else:
+		return clicked_pos
 
 # Returns true if the given point detects a collision with layer 1 (World), and false if not
 # Used for detecting move flag overlap with inaccessible terrain

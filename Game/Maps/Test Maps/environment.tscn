@@ -1,10 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://ds33s2n2m77jy"]
+[gd_scene load_steps=7 format=3 uid="uid://ds33s2n2m77jy"]
 
 [ext_resource type="Texture2D" uid="uid://b4i2t8fbpujqw" path="res://Maps/Placeholders/testmap1_sprite.png" id="1_c7t32"]
 [ext_resource type="Script" path="res://Maps/Test Maps/map.gd" id="2_c5mvg"]
 [ext_resource type="PackedScene" uid="uid://c5dppwj56yf3t" path="res://Cameras/map_camera.tscn" id="3_ujmm8"]
 [ext_resource type="PackedScene" uid="uid://b1l070yg8ba2j" path="res://Prefabs/PlayerCharacters/party_controller.tscn" id="3_x8nns"]
 [ext_resource type="Script" path="res://Maps/Test Maps/terrain.gd" id="4_ogavo"]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_aswh7"]
+vertices = PackedVector2Array(3622, 1123, 3840, 1274, 3838, 1768, 3117, 1439, 2989, 1288, 3245, 2001, 3085, 1510, 2796, 1691, 3024, 2194, 2664, 2279, 2411, 1713, 2124, 2277, 1764, 2138, 699, 1413, 0, 1358, -1, -1, 1539, -1, 1548, 48, 1724, 255, 1182, 1607, 2037, 385, 1609, 997, 1817, 1289, 1388, 1818, 1771, 994, 3022, 363, 3348, 456, 3431, 545)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3, 4), PackedInt32Array(3, 2, 5, 6), PackedInt32Array(7, 6, 5, 8, 9), PackedInt32Array(10, 7, 9, 11, 12), PackedInt32Array(13, 14, 15, 16, 17), PackedInt32Array(13, 17, 18, 19), PackedInt32Array(19, 18, 20, 21), PackedInt32Array(22, 10, 12, 23, 19), PackedInt32Array(21, 22, 19), PackedInt32Array(24, 21, 20), PackedInt32Array(4, 24, 20, 25, 26, 27, 0)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-1, -1, 1539, -1, 1548, 48, 1724, 255, 2037, 385, 3022, 363, 3348, 456, 3431, 545, 3622, 1123, 3840, 1274, 3838, 1768, 3245, 2001, 3024, 2194, 2664, 2279, 2124, 2277, 1764, 2138, 1388, 1818, 1182, 1607, 699, 1413, 0, 1358), PackedVector2Array(1609, 997, 1817, 1289, 2411, 1713, 2796, 1691, 3085, 1510, 3117, 1439, 2989, 1288, 1771, 994)])
+source_geometry_group_name = &"navigation_polygon_source_group"
+agent_radius = 0.0
 
 [node name="TestMap1" type="Node2D"]
 
@@ -28,18 +35,23 @@ collision_mask = 0
 input_pickable = true
 
 [node name="CollisionPolygonComponent" type="CollisionPolygon2D" parent="Terrain/StaticBody"]
-polygon = PackedVector2Array(-28, 1382, 620, 1426, 1000, 1538, 1201, 1644, 1692, 2102, 1956, 2231, 2143, 2284, 2663, 2276, 3012, 2204, 3251, 2005, 3515, 1897, 3854, 1769, 3869, 2734, -32, 2744)
+polygon = PackedVector2Array(-26, 1392, 535, 1415, 972, 1547, 1179, 1654, 1659, 2108, 1937, 2255, 2174, 2306, 2697, 2296, 3058, 2212, 3273, 2022, 3543, 1916, 3870, 1790, 3869, 2734, -32, 2744)
 
 [node name="StaticBody2" type="StaticBody2D" parent="Terrain"]
 collision_mask = 0
 input_pickable = true
 
 [node name="CollisionPolygonComponent" type="CollisionPolygon2D" parent="Terrain/StaticBody2"]
-polygon = PackedVector2Array(1617, 1001, 1752, 1223, 1885, 1323, 2127, 1455, 2303, 1614, 2407, 1696, 2637, 1713, 2894, 1639, 3102, 1482, 3102, 1425, 3000, 1287, 2517, 1158, 1731, 978)
+polygon = PackedVector2Array(1647, 1020, 1771, 1196, 1866, 1294, 2071, 1393, 2247, 1538, 2426, 1688, 2639, 1691, 2864, 1629, 3029, 1524, 3093, 1443, 2978, 1306, 2522, 1191, 2357, 1163, 1771, 1010)
 
 [node name="StaticBody3" type="StaticBody2D" parent="Terrain"]
 collision_mask = 0
 input_pickable = true
 
 [node name="CollisionPolygonComponent" type="CollisionPolygon2D" parent="Terrain/StaticBody3"]
-polygon = PackedVector2Array(1525, -39, 1544, 52, 1720, 236, 2011, 351, 2233, 375, 2940, 364, 3084, 354, 3381, 468, 3642, 1136, 3878, 1303, 3892, -58)
+polygon = PackedVector2Array(1557, -40, 1565, 45, 1730, 235, 2018, 352, 2861, 347, 3013, 319, 3220, 370, 3430, 494, 3661, 1098, 3865, 1269, 3892, -58)
+
+[node name="NavigationRegions" type="Node" parent="."]
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="NavigationRegions"]
+navigation_polygon = SubResource("NavigationPolygon_aswh7")
