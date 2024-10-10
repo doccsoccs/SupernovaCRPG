@@ -111,6 +111,20 @@ func _process(delta):
 		for i in selected_pcs.size():
 			preview_mfs[i].position = clicked_pos + formation_offsets[i].rotated(formation_angle)
 			preview_mfs[i].visible = true
+			
+			if !is_point_in_bounds(preview_mfs[i].position):
+				var temp_pos: Vector2 = preview_mfs[i].position
+				const inbounds_adjust: int = 80
+				var w: float = map.map_width * map.scale.x
+				var h: float = map.map_height * map.scale.x
+				if temp_pos.x >= w:
+					preview_mfs[i].position.x = w - inbounds_adjust
+				elif temp_pos.x <= 0:
+					preview_mfs[i].position.x = 0 + inbounds_adjust
+				if temp_pos.y >= h:
+					preview_mfs[i].position.y = h - inbounds_adjust
+				elif temp_pos.y <= 0:
+					preview_mfs[i].position.y = 0 + inbounds_adjust
 		
 	else:
 		for i in preview_mfs.size():
@@ -292,7 +306,7 @@ func place_move_flag():
 	
 	# Set new move flags for the selected pcs
 	# Rotates formation offsets based on 1st position party member and clicked position
-	if moving_pcs.size() > 1:
+	if moving_pcs.size() > 1 and is_point_in_bounds(clicked_pos):
 		
 		for i in moving_pcs.size():
 			if adjust_for_oob: # LMB into OOB terrain
@@ -310,11 +324,16 @@ func place_move_flag():
 				if get_colliding_polygon(pos) != null:
 					var vertex: Vector2 = get_nearest_inbound_pos(get_colliding_polygon(pos), clicked_pos)
 					pos = get_valid_move_pos(moving_pcs[i].position, vertex)
-				moving_pcs[i].move_to(pos)
+				moving_pcs[i].move_to(out_of_bounds_adjust(pos))
 			
 	# Don't use formations if only selecting 1 PC
-	elif moving_pcs.size() == 1:
-		moving_pcs[0].move_to(clicked_pos)
+	elif moving_pcs.size() == 1 and is_point_in_bounds(clicked_pos):
+		if adjust_for_oob: # LMB into OOB terrain
+			var target_vertex: Vector2 = get_nearest_inbound_pos(terrain_component.hovered_polygon, clicked_pos)
+			moving_pcs[0].move_to(get_valid_move_pos(moving_pcs[0].position, target_vertex))
+		else: # regular placement
+			moving_pcs[0].move_to(clicked_pos)
+	
 	use_rmb_rotated_offsets = false
 	adjust_for_oob = false
 	
@@ -340,50 +359,10 @@ func get_move_rotation(first_selected: CharacterBody2D) -> float:
 func get_nearest_inbound_pos(terrain: CollisionPolygon2D, target_pos: Vector2) -> Vector2:
 	var polygon_verteces: PackedVector2Array = terrain.polygon
 	
-	# Check against perpendicular edge intersects
-	# Get the slope of a line between 2 verteces (slope =(y₂ - y₁)/(x₂ - x₁))
-	# and calculate its "c" (where the line intersects a y-axis)
-	# Get that the negative reciprocal of that slope (ie. 5 --> -1/5)
-	# Find where the lines intersect, that's our edge point
-	
-	#var edge_points: Array[Vector2]
-	#
-	#for i in range(0, polygon_verteces.size()):
-		#var poly_slope: float
-		#var poly_y_int: float
-		#var input_slope: float
-		#var input_y_int: float
-		#if i < polygon_verteces.size() - 1:
-			#poly_slope = (polygon_verteces[i+1].y - polygon_verteces[i].y)/							\
-						 #(polygon_verteces[i+1].x - polygon_verteces[i].x)
-			#poly_y_int = polygon_verteces[i].y - (poly_slope * polygon_verteces[i].x) # (b = y - mx)
-			#input_slope = -1/poly_slope
-			#input_y_int = target_pos.y - (input_slope * target_pos.x)
-		#else:
-			#poly_slope = (polygon_verteces[polygon_verteces.size()-1].y - polygon_verteces[0].y)/							\
-						 #(polygon_verteces[polygon_verteces.size()-1].x - polygon_verteces[0].x)
-			#poly_y_int = polygon_verteces[0].y - (poly_slope * polygon_verteces[0].x) # (b = y - mx)
-			#input_slope = -1/poly_slope
-			#input_y_int = target_pos.y - (input_slope * target_pos.x)
-		#
-		#
-		## y = mx + b --> ax + by + c = 0 ~= mx - y + b
-		## a = slope, b = 1, c = y-intercept
-		## x-pos = (b1c2 - b2c1) / (a1b2 - a2b1) --> (c2 - c1) / (a1 - a2)
-		## y-pos = (a2c1 - a1c2) / (a1b2 - a2b1) --> (a2c1 - a1c2) / (a1 - a2)
-		#var edge_intersect_pos: Vector2
-		#edge_intersect_pos.x = (input_y_int - poly_y_int) / (poly_slope - input_slope)
-		#edge_intersect_pos.y = ((input_slope * poly_y_int) - (poly_slope * input_y_int)) / (poly_slope - input_slope)
-		#
-		#if is_point_in_bounds(edge_intersect_pos):
-			#edge_points.append(edge_intersect_pos)
-	
 	# Append all verteces and perpendicular edge points to an array to test for which is closest
 	var test_pts: Array[Vector2] = []
 	for i in polygon_verteces.size():
 		test_pts.append(polygon_verteces[i])
-	#for i in edge_points.size():
-		#test_pts.append(edge_points[i])
 	
 	var closest_pos: Vector2 = test_pts[0]
 	
@@ -395,13 +374,13 @@ func get_nearest_inbound_pos(terrain: CollisionPolygon2D, target_pos: Vector2) -
 	
 	return closest_pos
 
-func get_valid_move_pos(pc_pos: Vector2, vertex: Vector2) -> Vector2:
+func get_valid_move_pos(initial_flag_pos: Vector2, vertex: Vector2) -> Vector2:
 	const segments: int = 10
-	var test_pos: Vector2 = pc_pos
-	var pc_to_vertex: Vector2 = vertex - pc_pos
-	var segment: Vector2 = pc_to_vertex / segments 
+	var test_pos: Vector2 = initial_flag_pos
+	var init_to_vertex: Vector2 = vertex - initial_flag_pos
+	var segment: Vector2 = init_to_vertex / segments 
 	var found: bool = false
-	var nearest_valid_pos: Vector2 = pc_pos
+	var nearest_valid_pos: Vector2 = initial_flag_pos
 	
 	for i in segments:
 		test_pos += segment
@@ -412,7 +391,7 @@ func get_valid_move_pos(pc_pos: Vector2, vertex: Vector2) -> Vector2:
 	if found:
 		return nearest_valid_pos
 	else:
-		return clicked_pos
+		return Vector2.ZERO
 
 # Returns true if the given point detects a collision with layer 1 (World), and false if not
 # Used for detecting move flag overlap with inaccessible terrain
@@ -436,3 +415,21 @@ func is_point_in_bounds(pos: Vector2) -> bool:
 		return false 
 	else:
 		return true
+
+# Adjusts the inputed point to be within bounds if it is out of bounds
+func out_of_bounds_adjust(pos: Vector2) -> Vector2:
+	var temp_pos: Vector2 = pos
+	if !is_point_in_bounds(pos):
+		const inbounds_adjust: int = 80
+		var w: float = map.map_width * map.scale.x
+		var h: float = map.map_height * map.scale.x
+		if temp_pos.x >= w:
+			temp_pos.x = w - inbounds_adjust
+		elif temp_pos.x <= 0:
+			temp_pos.x = 0 + inbounds_adjust
+		if temp_pos.y >= h:
+			temp_pos.y = h - inbounds_adjust
+		elif temp_pos.y <= 0:
+			temp_pos.y = 0 + inbounds_adjust
+	
+	return temp_pos

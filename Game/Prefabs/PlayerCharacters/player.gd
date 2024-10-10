@@ -1,7 +1,7 @@
 extends CharacterBody2D
 class_name Character
 
-@export var move_speed : float = 1500.0
+@export var move_speed : float = 1350.0
 var direction : Vector2 = Vector2.ZERO
 var min_dist : float = 20.0
 var arrived_at_flag : bool = true
@@ -60,11 +60,13 @@ func move(delta):
 		arrived_at_flag = true
 
 # Sets new move target
+# Vector2.ZERO = null case
 func move_to(new_target_pos : Vector2):
-	target_pos = new_target_pos
-	agent.target_position = target_pos
-	arrived_at_flag = false
-	move_flag.position = target_pos
+	if new_target_pos != Vector2.ZERO:
+		target_pos = new_target_pos
+		agent.target_position = target_pos
+		arrived_at_flag = false
+		move_flag.position = target_pos
 
 # Selects this player character and adds them to the selected pcs array
 func select():
